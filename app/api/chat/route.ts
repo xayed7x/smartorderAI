@@ -29,7 +29,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set.');
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // --- MAIN API ENDPOINT ---
 export async function POST(req: NextRequest) {

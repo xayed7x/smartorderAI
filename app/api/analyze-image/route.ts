@@ -14,7 +14,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY environment variable is not set.');
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" }); // Using the correct, specified model
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Using the correct, specified model
 
 // --- TYPE DEFINITIONS ---
 type AnalyzeRequest = { imageBase64: string; imageMime: string; };
