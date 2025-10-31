@@ -28,9 +28,9 @@ const hindSiliguri = Hind_Siliguri({
 });
 
 export const metadata: Metadata = {
-  title: "Brillance - Effortless Custom Contract Billing",
+  title: "SmartOrderAI - automate social media orders",
   description:
-    "Streamline your billing process with seamless automation for every custom contract, tailored by Brillance.",
+    "Automate your social media orders with SmartOrderAI.",
     generator: 'v0.app'
 }
 
