@@ -6,6 +6,15 @@ import NavigationBar from "@/components/layout/navigation-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Paperclip, Loader2, Send } from "lucide-react";
+import { Instrument_Serif } from "next/font/google";
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+  weight: ["400"],
+  display: "swap",
+  preload: true,
+});
 
 // --- TYPE DEFINITIONS ---
 interface Message {
@@ -209,7 +218,7 @@ export default function LandingPage() {
       <NavigationBar />
       <div className="flex-1 flex flex-col items-center justify-start pt-24 px-4 pb-8 w-full">
         <div className="w-full max-w-2xl flex flex-col items-center gap-6 mb-12">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#37322F] text-center leading-tight">
+          <h1 className={`text-4xl md:text-5xl lg:text-6xl text-[#37322F] text-center leading-tight ${instrumentSerif.className}`}>
             Automate Social Commerce Orders Instantly
           </h1>
           <p className="text-lg md:text-xl text-[rgba(55,50,47,0.80)] text-center font-sans">
