@@ -20,7 +20,9 @@ const instrumentSerif = Instrument_Serif({
 interface Message {
   id: string;
   sender: "user" | "bot" | "system";
-  content: React.ReactNode;
+  text?: string;
+  product?: Product;
+  imageUrl?: string;
 }
 
 interface Product {
@@ -42,7 +44,7 @@ function LoaderIcon() {
 // --- MAIN COMPONENT ---
 export default function LandingPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { id: "initial", sender: "bot", content: "Hello! Upload an image of a product or ask me anything." },
+    { id: "initial", sender: "bot", text: "Hello! Upload an image of a product or ask me anything." },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
@@ -99,10 +101,10 @@ export default function LandingPage() {
       setOrderPlaced(true);
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), sender: "system", content: `Order placed successfully! Order ID: ${result.orderId}` },
+        { id: Date.now().toString(), sender: "system", text: `Order placed successfully! Order ID: ${result.orderId}` },
       ]);
     } catch (error: any) {
-      setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "system", content: `Error: ${error.message}` }]);
+      setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "system", text: `Error: ${error.message}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -125,32 +127,17 @@ export default function LandingPage() {
       if (!response.ok) throw new Error((await response.json()).error || "Analysis failed");
 
       const result: { foundProduct: Product | null; message?: string } = await response.json();
-      let botMessageContent: React.ReactNode;
 
       if (result.foundProduct) {
         setActiveProduct(result.foundProduct);
-        const product = result.foundProduct;
-        botMessageContent = (
-          <div className="flex flex-col gap-3 p-2 rounded-lg bg-white border border-gray-200">
-            <img src={product.imageUrl} alt={product.name} className="rounded-md object-cover w-full h-48" />
-            <div className="p-2">
-              <p className="font-bold text-base text-gray-800">{product.name}</p>
-              <p className="text-sm text-gray-600">Price: BDT {product.price.toLocaleString()}</p>
-              <p className="text-sm text-green-600">In Stock: {product.stock} units</p>
-            </div>
-            <Button size="sm" className="w-full mt-2" onClick={handlePlaceOrderClick} disabled={orderPlaced}>
-              {orderPlaced ? "Order Placed!" : "✅ Place Order"}
-            </Button>
-          </div>
-        );
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", product: result.foundProduct }]);
       } else {
         setActiveProduct(null);
-        botMessageContent = result.message || "Sorry, I couldn't identify the product.";
+        const botText = result.message || "Sorry, I couldn't identify the product.";
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", text: botText }]);
       }
-
-      setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", content: botMessageContent }]);
     } catch (error: any) {
-      setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", content: `Error: ${error.message}` }]);
+      setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", text: `Error: ${error.message}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +147,7 @@ export default function LandingPage() {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    const userMessage: Message = { id: Date.now().toString(), sender: "user", content: inputValue };
+    const userMessage: Message = { id: Date.now().toString(), sender: "user", text: inputValue };
     setMessages((prev) => [...prev, userMessage]);
     const currentMessageText = inputValue;
     setInputValue("");
@@ -169,7 +156,7 @@ export default function LandingPage() {
     if (isCollectingInfo) {
       // --- LOGIC FOR CREATING ORDER WITH DETAILS ---
       if (!activeProduct) {
-        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "system", content: "Error: No active product to order." }]);
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "system", text: "Error: No active product to order." }]);
         setIsLoading(false);
         return;
       }
@@ -185,17 +172,17 @@ export default function LandingPage() {
         setIsCollectingInfo(false); // Exit collection mode
         setMessages((prev) => [
           ...prev,
-          { id: Date.now().toString(), sender: "system", content: `Order placed successfully! Order ID: ${result.orderId}` },
+          { id: Date.now().toString(), sender: "system", text: `Order placed successfully! Order ID: ${result.orderId}` },
         ]);
       } catch (error: any) {
-        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "system", content: `Error: ${error.message}` }]);
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "system", text: `Error: ${error.message}` }]);
       }
 
     } else {
       // --- LOGIC FOR NORMAL CHAT ---
       const chatHistory: GeminiChatMessage[] = messages
-        .filter(msg => typeof msg.content === 'string')
-        .map(msg => ({ role: msg.sender === 'user' ? 'user' : 'model', parts: [{ text: msg.content as string }] }));
+        .filter(msg => !!msg.text)
+        .map(msg => ({ role: msg.sender === 'user' ? 'user' : 'model', parts: [{ text: msg.text as string }] }));
 
       try {
         const response = await fetch("/api/chat", {
@@ -209,13 +196,13 @@ export default function LandingPage() {
         const result: { reply: string; intent?: string } = await response.json();
         const cleanedReply = result.reply.replace('[INTENT:COLLECT_INFO]', '').trim();
 
-        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", content: cleanedReply }]);
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", text: cleanedReply }]);
 
         if (result.intent === 'COLLECT_INFO') {
           setIsCollectingInfo(true);
         }
       } catch (error: any) {
-        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", content: `Error: ${error.message}` }]);
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "bot", text: `Error: ${error.message}` }]);
       }
     }
     setIsLoading(false);
@@ -229,8 +216,7 @@ export default function LandingPage() {
     reader.onload = (loadEvent) => {
       const imageBase64 = loadEvent.target?.result as string;
       if (imageBase64) {
-        const userMessageContent = <img src={imageBase64} alt="User upload" className="max-w-xs rounded-lg" />;
-        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "user", content: userMessageContent }]);
+        setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "user", imageUrl: imageBase64 }]);
         analyzeImage(imageBase64, file.type);
       }
     };
@@ -253,15 +239,42 @@ export default function LandingPage() {
         <div className="w-full max-w-2xl">
           <div className="border border-[rgba(55,50,47,0.12)] rounded-2xl bg-white flex flex-col overflow-hidden shadow-sm h-[600px]">
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg ${
-                    msg.sender === "user" ? "bg-blue-500 text-white rounded-br-none" : msg.sender === 'system' ? 'bg-yellow-200 text-yellow-800 text-xs text-center w-full' : "bg-[#F0EEEB] text-[#37322F] rounded-bl-none"
-                  } font-sans text-sm leading-relaxed`}>
-                    {msg.content}
+              {messages.map((msg) => {
+                let content: React.ReactNode;
+
+                if (msg.text) {
+                  content = msg.text;
+                } else if (msg.imageUrl) {
+                  content = <img src={msg.imageUrl} alt="User upload" className="max-w-xs rounded-lg" />;
+                } else if (msg.product) {
+                  const product = msg.product;
+                  content = (
+                    <div className="flex flex-col gap-3 p-2 rounded-lg bg-white border border-gray-200">
+                      <img src={product.imageUrl} alt={product.name} className="rounded-md object-cover w-full h-48" />
+                      <div className="p-2">
+                        <p className="font-bold text-base text-gray-800">{product.name}</p>
+                        <p className="text-sm text-gray-600">Price: BDT {product.price.toLocaleString()}</p>
+                        <p className="text-sm text-green-600">In Stock: {product.stock} units</p>
+                      </div>
+                      <Button size="sm" className="w-full mt-2" onClick={handlePlaceOrderClick} disabled={orderPlaced}>
+                        {orderPlaced ? "Order Placed!" : "✅ Place Order"}
+                      </Button>
+                    </div>
+                  );
+                }
+
+                if (!content) return null;
+
+                return (
+                  <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg ${
+                      msg.sender === "user" ? "bg-blue-500 text-white rounded-br-none" : msg.sender === 'system' ? 'bg-yellow-200 text-yellow-800 text-xs text-center w-full' : "bg-[#F0EEEB] text-[#37322F] rounded-bl-none"
+                    } font-sans text-sm leading-relaxed`}>
+                      {content}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-[#F0EEEB] text-[#37322F] px-4 py-3 rounded-lg rounded-bl-none flex items-center gap-2">
