@@ -56,6 +56,31 @@ export default function LandingPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    // This runs every time messages, activeProduct, or isCollectingInfo changes
+    const chatState = {
+      messages,
+      activeProduct,
+      isCollectingInfo,
+    };
+    localStorage.setItem('chatSession', JSON.stringify(chatState));
+  }, [messages, activeProduct, isCollectingInfo]);
+
+  useEffect(() => {
+    // This runs only once on component mount
+    const savedSession = localStorage.getItem('chatSession');
+    if (savedSession) {
+      try {
+        const chatState = JSON.parse(savedSession);
+        setMessages(chatState.messages || []);
+        setActiveProduct(chatState.activeProduct || null);
+        setIsCollectingInfo(chatState.isCollectingInfo || false);
+      } catch (error) {
+        console.error("Failed to parse chat session from localStorage", error);
+      }
+    }
+  }, []); // Empty array ensures this runs only once
+
   // --- ORDER CREATION HANDLER (Button Click) ---
   const handlePlaceOrderClick = async () => {
     if (!activeProduct) return;
