@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
               const userImagePart = imageToGenerativePart(imageBuffer, imageResponse.headers.get('content-type') || 'image/jpeg');
 
               // 1. Quick Analysis with Flash Model
-              const flashModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+              const flashModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
               const categoryPrompt = "Analyze this image and return only a valid JSON object with one key: 'category' (e.g., 'Polo Shirt', 'Jeans').";
               let result = await flashModel.generateContent([categoryPrompt, userImagePart]);
               const { category } = JSON.parse(result.response.text().replace(/```json|```/g, ''));
