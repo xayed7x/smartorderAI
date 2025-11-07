@@ -30,28 +30,37 @@ async function checkModelsDirectly() {
     const data = await response.json();
     const modelNames = data.models.map((model) => model.name);
 
-    let isGemini15ProAvailable = false;
+    let isGemini25ProAvailable = false;
+    let isGemini25FlashAvailable = false;
 
     console.log("-------------------------------------------");
     console.log("✅ Models available for your key:");
 
     modelNames.forEach((name) => {
       console.log(`- ${name}`);
-      if (name.includes("gemini-1.5-pro")) {
-        isGemini15ProAvailable = true;
+      if (name.includes("gemini-2.5-pro")) {
+        isGemini25ProAvailable = true;
+      }
+      if (name.includes("gemini-2.5-flash")) {
+        isGemini25FlashAvailable = true;
       }
     });
 
     console.log("-------------------------------------------");
 
-    if (isGemini15ProAvailable) {
+    if (isGemini25ProAvailable && isGemini25FlashAvailable) {
       console.log(
-        "🟢 SUCCESS: Great news! Your API key has access to Gemini 1.5 Pro models."
+        "🟢 SUCCESS: Great news! Your API key has access to both Gemini 2.5 Pro and Gemini 2.5 Flash models."
       );
     } else {
-      console.log("🟡 INFO: Gemini 1.5 Pro was not found.");
+        if (!isGemini25ProAvailable) {
+            console.log("🔴 ERROR: Gemini 2.5 Pro was not found.");
+        }
+        if (!isGemini25FlashAvailable) {
+            console.log("🔴 ERROR: Gemini 2.5 Flash was not found.");
+        }
       console.log(
-        "Based on your needs, the best available vision model is likely `models/gemini-pro-vision`."
+        "Please ensure your API key is enabled for the latest models in your Google Cloud project."
       );
     }
     console.log("-------------------------------------------");
