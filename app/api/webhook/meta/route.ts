@@ -86,9 +86,7 @@ export async function POST(req: NextRequest) {
               const flashModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
               const categoryPrompt = "Analyze this image and return only a valid JSON object with one key: 'category' (e.g., 'Polo Shirt', 'Jeans').";
               let result = await flashModel.generateContent([categoryPrompt, userImagePart]);
-              const { category } = JSON.parse(result.response.text().replace(/```json
-?|
-?```/g, ''));
+              const { category } = JSON.parse(result.response.text().replace(/```json|```/g, ''));
 
               if (!category) {
                  await sendReply(senderId, "দুঃখিত, আমি এই ছবিটি থেকে পণ্যের ধরণটি বুঝতে পারিনি।");
