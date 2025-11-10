@@ -111,17 +111,16 @@ export default function LandingPage() {
   };
 
   // --- API CALL HANDLERS ---
-  const analyzeImage = async (imageBase64: string, imageMime: string) => {
+  const analyzeImage = async (imageBase64: string) => {
     setIsLoading(true);
     setOrderPlaced(false);
     setIsCollectingInfo(false); // Reset info collection on new image
-    const pureBase64 = imageBase64.split(",")[1];
-
+    
     try {
       const response = await fetch("/api/analyze-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: pureBase64, imageMime }),
+        body: JSON.stringify({ imageBase64 }),
       });
 
       if (!response.ok) throw new Error((await response.json()).error || "Analysis failed");
@@ -216,8 +215,9 @@ export default function LandingPage() {
     reader.onload = (loadEvent) => {
       const imageBase64 = loadEvent.target?.result as string;
       if (imageBase64) {
+        const pureBase64 = imageBase64.split(",")[1];
         setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "user", imageUrl: imageBase64 }]);
-        analyzeImage(imageBase64, file.type);
+        analyzeImage(pureBase64);
       }
     };
     reader.readAsDataURL(file);
